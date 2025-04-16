@@ -9,12 +9,13 @@ class Flight {
     string airline;
     string direction;
     int priority;
+    bool isEmergency;
     Aircraft* aircraft;
     //har flight ka ek aircraft hai
 
 public:
     Flight(int id, string type, string airline, string direction, int priority, Aircraft* aircraft)
-        : id(id), type(type), airline(airline), direction(direction), priority(priority), aircraft(aircraft) {}
+        : id(id), type(type), airline(airline), direction(direction), priority(priority), aircraft(aircraft), isEmergency(false){}
 
     void setType(string newType) {
         type = newType;
@@ -49,6 +50,14 @@ public:
     void setAircraft(Aircraft* newAircraft) {
         aircraft = newAircraft;
     }
+    bool isEmergencyFlight() const {
+        return isEmergency;
+    }
+    void setEmergencyFlight(bool emergency) {
+        isEmergency = emergency;
+    }
+    
+
     void printFlightDetails() const {
         cout << "Flight ID: " << id << endl;
         cout << "Type: " << type << endl;
