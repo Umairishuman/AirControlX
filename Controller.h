@@ -32,7 +32,7 @@ public:
         runways.push_back(new Runway(2, "RWY-B", "East/West", "Departure"));
         runways.push_back(new Runway(3, "RWY-C", "All", "Cargo/Emergency/Military"));
 
-        
+
     } 
     void initilaizeAirlines() {
         airlines.push_back(new Airline(1, "PIA", "Commercial", 6, 4));
@@ -55,7 +55,7 @@ public:
 
         cout << "Generating flights..." << endl;
 
-
+        return nullptr;
     }
 };
 
