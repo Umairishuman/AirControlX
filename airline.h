@@ -64,16 +64,7 @@ public:
         aircrafts.push_back(aircraft);
         totalAircrafts++;
     }
-    void removeAircraft(int id) {
-        for (auto it = aircrafts.begin(); it != aircrafts.end(); ++it) {
-            if ((*it)->getId() == id) {
-                delete *it; // Free the memory
-                aircrafts.erase(it);
-                totalAircrafts--;
-                break;
-            }
-        }
-    }
+    
     void displayAircrafts() const {
         for (const auto& aircraft : aircrafts) {
             cout << "Aircraft ID: " << aircraft->getId() << ", Name: " << aircraft->getName() << ", Type: " << aircraft->getType() << endl;
