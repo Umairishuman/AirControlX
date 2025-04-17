@@ -3,8 +3,13 @@
 
 #include "airline.h"
 #include "runway.h"
+#include <ctime>
 #include "flight.h"
 #include <pthread.h>
+#include <SFML/Graphics.hpp>
+using namespace std;
+using namespace sf;
+
 
 #define NORTH 0
 #define SOUTH 1
@@ -81,6 +86,10 @@ public:
     }
     
     static void* flightGenerator(void* arg) {
+
+        cout << "Flight generator thread started..." << endl;
+        pthread_exit(nullptr);
+
         Controller* controller = (Controller*)arg;
         srand(time(NULL));
         
@@ -145,10 +154,29 @@ public:
 
                 }
             }
-            usleep(100000); // Sleep for 0.1 seconds
+            // sleep(1); // Sleep for 0.1 seconds
             
         }  
         return  nullptr;
+    }
+    void render(){
+        //rendering will be done through sfml
+        //initialize the window
+
+        sf::RenderWindow window(sf::VideoMode(800, 600), "Airport Simulation");
+        while (window.isOpen()) {
+            sf::Event event;
+            while (window.pollEvent(event)) {
+                if (event.type == sf::Event::Closed)
+                    window.close();
+            }
+
+            window.clear(sf::Color::Black);
+
+            // Draw your objects here
+
+            window.display();
+        }
     }
     
     
