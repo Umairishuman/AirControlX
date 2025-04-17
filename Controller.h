@@ -114,26 +114,18 @@ public:
                         case NORTH:
                             flightType = "International Arrivals";
                             direction = "North";
-                            airlineName = controller->airlines[0]->getName();
-                            priority = 1;
                             break;
                         case SOUTH:
                             flightType = "Domestic Arrivals";
                             direction = "South";
-                            airlineName = controller->airlines[1]->getName();
-                            priority = 2;
                             break;
                         case EAST:
                             flightType = "International Departures";
                             direction = "East";
-                            airlineName = controller->airlines[2]->getName();
-                            priority = 3;
                             break;
                         case WEST:
                             flightType = "Domestic Departures";
                             direction = "West";
-                            airlineName = controller->airlines[3]->getName();
-                            priority = 4;
                             break;
                     }
 
