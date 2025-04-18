@@ -5,7 +5,7 @@
 //yeh flights aur aircrafts ka bahut gehra connection hai
 class Flight {
     int id;
-    string type;
+    string type;    //
     string airline;
     string direction;
     int priority;

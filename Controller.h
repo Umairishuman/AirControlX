@@ -113,14 +113,6 @@ public:
         // }
     }
 
-    void runSimulation(RenderWindow& window){
-        //creating the thread to generate flights and making it detachable
-        pthread_create(&flightGeneratorThread, &flightGeneratorAttr, flightGenerator, this);
-        pthread_attr_init(&flightGeneratorAttr);
-        pthread_attr_setdetachstate(&flightGeneratorAttr, PTHREAD_CREATE_DETACHED);
-        pthread_attr_destroy(&flightGeneratorAttr);
-
-    }
     void run() {
         bool running = true;
     
@@ -147,8 +139,8 @@ public:
 
         window.setSize(Vector2u(1000, 690));
         
-        runSimulation(window);
-        return;
+        // runSimulation(window);
+        // return;
 
 
         while (window.isOpen() && running) {
@@ -165,7 +157,7 @@ public:
             window.clear(Color::Black);
     
             if (currentScreenId == SIMULATION) {
-                runSimulation(window);
+                runSimulation();
             } else {
                 currentScreen->Render(window);
                 if (currentScreenId == STARTUP && !currentScreen->isRunning) {
@@ -224,33 +216,37 @@ public:
         }
         return nullptr; // No available aircraft
     }
+
     
+    void runSimulation(){
+        //creating the thread to generate flights and making it detachable
+        pthread_attr_init(&flightGeneratorAttr);
+        pthread_attr_setdetachstate(&flightGeneratorAttr, PTHREAD_CREATE_DETACHED);
+        pthread_create(&flightGeneratorThread, &flightGeneratorAttr, flightGenerator, this);
+        pthread_attr_destroy(&flightGeneratorAttr);
+
+    }
+
     static void* flightGenerator(void* arg) {
 
         cout << "Flight generator thread started..." << endl;
-        // pthread_exit(nullptr);
 
         Controller* controller = (Controller*)arg;
         srand(time(NULL));
         
-        //flight times 
         const double flightTimes[] = {180.0, 120.0, 150, 240.0}; // in minutes
 
-
+        // here i am decalaring a variable to hold the arrival intervals
         bool cargoHasBeenGenerated = false;
         double elapsedTime[] = {0.0, 0.0, 0.0, 0.0};
         double emergencyProbabilities[] = {0.1, 0.5, 0.15, 0.2};
         
-        // here i am decalaring a variable to hold the arrival intervals
         //the flight should also use an available aircraft
-        //so the algo goes like this
-        //first i 
         //
         int flightId = 0;
         while (true) {
             for (int i = 0; i < 4; i++) {
                 elapsedTime[i] -= 1; // increment elapsed time by 0.1 minutes
-
                 if (elapsedTime[i] <= 0.0) {
                     elapsedTime[i] = flightTimes[i]; // reset elapsed time
                     bool isEmergency = controller->generateEmergency(emergencyProbabilities[i]);
@@ -316,25 +312,6 @@ public:
         }  
         return  nullptr;
     }
-    // void render(){
-    //     //rendering will be done through sfml
-    //     //initialize the window
-
-    //     sf::RenderWindow window(sf::VideoMode(800, 600), "Airport Simulation");
-    //     while (window.isOpen()) {
-    //         sf::Event event;
-    //         while (window.pollEvent(event)) {
-    //             if (event.type == sf::Event::Closed)
-    //                 window.close();
-    //         }
-
-    //         window.clear(sf::Color::Black);
-
-    //         // Draw your objects here
-
-    //         window.display();
-    //     }
-    // }
     
     
 };

@@ -2,7 +2,8 @@
 #include <unistd.h>
 int main(){
     Controller controller;
-    controller.run();
-    usleep(300000000);
+    // controller.run();
+    controller.runSimulation();
+    usleep(10000000);
     return 0;
 }
