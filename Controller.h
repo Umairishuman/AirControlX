@@ -146,7 +146,11 @@ public:
         // window.setView(view);
 
         window.setSize(Vector2u(1000, 690));
-    
+        
+        runSimulation(window);
+        return;
+
+
         while (window.isOpen() && running) {
             Event event;
             while (window.pollEvent(event)) {
