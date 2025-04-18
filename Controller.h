@@ -121,13 +121,32 @@ public:
         pthread_attr_destroy(&flightGeneratorAttr);
 
     }
-    void run(){
-        
-        //creating the sfml window
+    void run() {
         bool running = true;
-        RenderWindow window(VideoMode(1000, 700), "AirControlX Simulation");
-        window.setPosition(Vector2i(100, 0));
-        // window.setSize(sf::Vector2u(1000, 700));
+    
+        // Internal logic resolution
+        const unsigned int internalWidth = 1000;
+        const unsigned int internalHeight = 700;
+    
+        // Get screen resolution
+        sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
+    
+        // Scale window size down to 90%
+        float scaleFactor = 1.0f;
+        unsigned int winWidth = internalWidth * scaleFactor;
+        unsigned int winHeight = internalHeight * scaleFactor;
+    
+        RenderWindow window(VideoMode(winWidth, winHeight), "AirControlX Simulation", Style::Titlebar | Style::Close);
+        
+        // Center window on screen
+        window.setPosition(Vector2i((desktop.width - winWidth) / 2, (desktop.height - winHeight) / 2));
+    
+        // // Set logical view to 1000x700
+        // sf::View view(sf::FloatRect(0, 0, internalWidth, internalHeight));
+        // window.setView(view);
+
+        window.setSize(Vector2u(1000, 690));
+    
         while (window.isOpen() && running) {
             Event event;
             while (window.pollEvent(event)) {
@@ -136,28 +155,26 @@ public:
                     window.close();
                     return;
                 }
-                handle(event, window);        
+                handle(event, window);
             }
-
-            // cout << currentScreenId << endl;
+    
             window.clear(Color::Black);
-            
-            if(currentScreenId == SIMULATION){
+    
+            if (currentScreenId == SIMULATION) {
                 runSimulation(window);
-            }
-            else {
-
+            } else {
                 currentScreen->Render(window);
-                if(currentScreenId == STARTUP && currentScreen->isRunning == false){
-                    //so that the startup automatically goes to menu no need to press any key
+                if (currentScreenId == STARTUP && !currentScreen->isRunning) {
                     currentScreenId = 1;
                     currentScreen = menuScreen;
-
                 }
             }
+    
             window.display();
         }
     }
+    
+    
     void handle(Event& event, RenderWindow& window) {
         if (event.type == Event::KeyPressed) {
             if (event.key.code == Keyboard::Escape) {
