@@ -6,8 +6,8 @@
 #include <ctime>
 #include "flight.h"
 #include <pthread.h>
-#include <SFML/Graphics.hpp>
 #include <unistd.h>
+#include "StartupScreen.h"
 using namespace std;
 using namespace sf;
 
@@ -16,6 +16,13 @@ using namespace sf;
 #define SOUTH 1
 #define EAST 2
 #define WEST 3
+
+//some constants for the screen debating whether to add options screen(no marks for it)
+#define STARTUP 0
+#define MENU 1
+#define SIMULATION 2
+#define EXIT 3
+
 class Controller {
     vector<Airline*> airlines;
     vector<Runway*> runways;
@@ -25,19 +32,31 @@ class Controller {
     pthread_t flightGeneratorThread;
     pthread_attr_t flightGeneratorAttr;
 
-    pthread_mutex_t lock;
+    // pthread_mutex_t lock;
+    
+    //dumb screens
+    int currentScreenId;
+    Screen* currentScreen;
+    Screen* startupScreen;
+    Screen* menuScreen;
+    // Screen* simulationScreen;
+    Screen* exitScreen;
+
 public:
     Controller() {
         initilaizeAirlines();
         initializeRunways();
 
-        //initilize a thread to go into 
-        //flightGenerator function
-        pthread_attr_init(&flightGeneratorAttr);
-        pthread_attr_setdetachstate(&flightGeneratorAttr, PTHREAD_CREATE_DETACHED);
-        pthread_create(&flightGeneratorThread, &flightGeneratorAttr, flightGenerator, this);
+        //creating the screens
+        // startupScreen = new StartupScreen("assets/startup.png");
+        // menuScreen = new MenuScreen("assets/menu.png");
+        // exitScreen = new ExitScreen("assets/exit.png");
 
-
+        startupScreen = new StartupScreen("Assets/AirControl1.png");
+        currentScreen = startupScreen;
+        currentScreenId = STARTUP;
+        // menuScreen = new MenuScreen("")
+        // exitScreen = new ExitScreen("")
     }
     void initializeRunways() {
         runways.push_back(new Runway(1, "RWY-A", "North/South", "Arrival"));
@@ -64,20 +83,78 @@ public:
         // }
     }
 
-    // static void* flightGenerator(void* arg){
+    void runSimulation(RenderWindow& window){
+        //creating the thread to generate flights and making it detachable
+        pthread_create(&flightGeneratorThread, &flightGeneratorAttr, flightGenerator, this);
+        pthread_attr_init(&flightGeneratorAttr);
+        pthread_attr_setdetachstate(&flightGeneratorAttr, PTHREAD_CREATE_DETACHED);
+        pthread_attr_destroy(&flightGeneratorAttr);
 
-    //     // Direction, Flight Type, Time, Emergency Probability
-    //     // North, International Arrivals, Every 3 minutes, 10% (low fuel/diversion)
-    //     // South, Domestic Arrivals, Every 2 minutes, 5% (air ambulance)
-    //     // East, International Departures, Every 2.5 minutes, 15% (military/priority)
-    //     // West, Domestic Departures, Every 4 minutes, 20% (VIP or urgent cargo)
-    //     Controller *controller = (Controller*)arg;
+    }
+    void run(){
+        
+        //creating the sfml window
+        bool running = true;
+        RenderWindow window(VideoMode(1000, 700), "AirControlX Simulation");
+        // window.setPosition(Vector2i(100, 10));
+        // window.setSize(sf::Vector2u(1000, 700));
+        while (window.isOpen() && running) {
+            Event event;
+            while (window.pollEvent(event)) {
+                if (event.type == Event::Closed || event.key.code == Keyboard::Escape) {
+                    running = false;
+                    window.close();
+                }
+                handle(event, window);        
+            }
 
+            cout << currentScreenId << endl;
+            window.clear(Color::Black);
+            
+            if(currentScreenId == SIMULATION){
+                runSimulation(window);
+            }
+            else {
 
-    //     cout << "Generating flights..." << endl;
+                currentScreen->Render(window);
+                if(currentScreenId == STARTUP && currentScreen->isRunning == false){
+                    //so that the startup automatically goes to menu no need to press any key
+                    currentScreenId = 1;
 
-    //     return nullptr;
-    // }
+                }
+            }
+            window.display();
+        }
+    }
+    void handle(Event& event, RenderWindow& window) {
+        if (event.type == Event::KeyPressed) {
+            if (event.key.code == Keyboard::Escape) {
+                window.close();
+            }
+            // all screen will return accordingly
+            currentScreenId = currentScreen->handleEvents(window, event);
+            
+            switch (currentScreenId) {
+                case STARTUP:
+                    currentScreen = startupScreen;
+                    break;
+                case MENU:
+                    // currentScreen = menuScreen;
+                    cout << "Menu Screen not implemented yet." << endl;
+                    break;
+                case SIMULATION:
+                    currentScreen = nullptr;
+                    cout << "Simulation Screen not implemented yet." << endl;
+                    break;
+                case EXIT:
+                    // currentScreen = exitScreen;
+                    cout << "Exit Screen not implemented yet." << endl;
+
+                    break;
+            }
+        }
+    }
+
 
     bool generateEmergency(double probabilityPercent) {
         if(rand() % 100 < probabilityPercent * 100) {
@@ -186,25 +263,25 @@ public:
         }  
         return  nullptr;
     }
-    void render(){
-        //rendering will be done through sfml
-        //initialize the window
+    // void render(){
+    //     //rendering will be done through sfml
+    //     //initialize the window
 
-        sf::RenderWindow window(sf::VideoMode(800, 600), "Airport Simulation");
-        while (window.isOpen()) {
-            sf::Event event;
-            while (window.pollEvent(event)) {
-                if (event.type == sf::Event::Closed)
-                    window.close();
-            }
+    //     sf::RenderWindow window(sf::VideoMode(800, 600), "Airport Simulation");
+    //     while (window.isOpen()) {
+    //         sf::Event event;
+    //         while (window.pollEvent(event)) {
+    //             if (event.type == sf::Event::Closed)
+    //                 window.close();
+    //         }
 
-            window.clear(sf::Color::Black);
+    //         window.clear(sf::Color::Black);
 
-            // Draw your objects here
+    //         // Draw your objects here
 
-            window.display();
-        }
-    }
+    //         window.display();
+    //     }
+    // }
     
     
 };
