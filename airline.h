@@ -36,6 +36,11 @@ public:
             aircrafts[i]->setStatus("Grounded");
         }
     }
+    ~Airline() {
+        for (auto aircraft : aircrafts) {
+            delete aircraft; 
+        }
+    }
 
     void setName(string newName) {
         name = newName;
@@ -100,11 +105,7 @@ public:
             aircraft->print();
         }
     }
-    ~Airline() {
-        for (auto aircraft : aircrafts) {
-            delete aircraft; // Free the memory
-        }
-    }
+   
 };
 
 #endif

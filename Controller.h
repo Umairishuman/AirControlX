@@ -8,6 +8,8 @@
 #include <pthread.h>
 #include <unistd.h>
 #include "StartupScreen.h"
+#include "MenuScreen.h"
+#include "ExitScreen.h"
 using namespace std;
 using namespace sf;
 
@@ -38,25 +40,53 @@ class Controller {
     int currentScreenId;
     Screen* currentScreen;
     Screen* startupScreen;
-    Screen* menuScreen;
-    // Screen* simulationScreen;
+    Screen* menuScreen ;
     Screen* exitScreen;
+    // 
+    // Screen* simulationScreen;
 
 public:
     Controller() {
         initilaizeAirlines();
         initializeRunways();
 
-        //creating the screens
-        // startupScreen = new StartupScreen("assets/startup.png");
-        // menuScreen = new MenuScreen("assets/menu.png");
-        // exitScreen = new ExitScreen("assets/exit.png");
 
         startupScreen = new StartupScreen("Assets/AirControl1.png");
         currentScreen = startupScreen;
         currentScreenId = STARTUP;
-        // menuScreen = new MenuScreen("")
-        // exitScreen = new ExitScreen("")
+
+        menuScreen = new MenuScreen("Assets/Menu.png");
+        exitScreen = new ExitScreen("Assets/Exit.png");
+    }
+    ~Controller() {
+        // Clean up dynamically allocated memory
+        for (auto& airline : airlines) {
+            delete airline;
+        }
+        for (auto& runway : runways) {
+            delete runway;
+        }
+        for (auto& flight : arrivals) {
+            delete flight;
+        }
+        for (auto& flight : departures) {
+            delete flight;
+        
+        }
+        if(flightGeneratorThread) {
+            pthread_cancel(flightGeneratorThread);
+        }
+        if (startupScreen) {
+            delete startupScreen;
+        }
+        if (menuScreen) {
+            delete menuScreen;
+        }
+        if (exitScreen) {
+            delete exitScreen;
+        }
+
+
     }
     void initializeRunways() {
         runways.push_back(new Runway(1, "RWY-A", "North/South", "Arrival"));
@@ -96,7 +126,7 @@ public:
         //creating the sfml window
         bool running = true;
         RenderWindow window(VideoMode(1000, 700), "AirControlX Simulation");
-        // window.setPosition(Vector2i(100, 10));
+        window.setPosition(Vector2i(100, 0));
         // window.setSize(sf::Vector2u(1000, 700));
         while (window.isOpen() && running) {
             Event event;
@@ -104,11 +134,12 @@ public:
                 if (event.type == Event::Closed || event.key.code == Keyboard::Escape) {
                     running = false;
                     window.close();
+                    return;
                 }
                 handle(event, window);        
             }
 
-            cout << currentScreenId << endl;
+            // cout << currentScreenId << endl;
             window.clear(Color::Black);
             
             if(currentScreenId == SIMULATION){
@@ -120,6 +151,7 @@ public:
                 if(currentScreenId == STARTUP && currentScreen->isRunning == false){
                     //so that the startup automatically goes to menu no need to press any key
                     currentScreenId = 1;
+                    currentScreen = menuScreen;
 
                 }
             }
@@ -139,16 +171,16 @@ public:
                     currentScreen = startupScreen;
                     break;
                 case MENU:
-                    // currentScreen = menuScreen;
-                    cout << "Menu Screen not implemented yet." << endl;
+                    currentScreen = menuScreen;
+                    // cout << "Menu Screen not implemented yet." << endl;
                     break;
                 case SIMULATION:
                     currentScreen = nullptr;
-                    cout << "Simulation Screen not implemented yet." << endl;
+                    // cout << "Simulation Screen not implemented yet." << endl;
                     break;
                 case EXIT:
-                    // currentScreen = exitScreen;
-                    cout << "Exit Screen not implemented yet." << endl;
+                    currentScreen = exitScreen;
+                    // cout << "Exit Screen not implemented yet." << endl;
 
                     break;
             }
