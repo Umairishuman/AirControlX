@@ -2,6 +2,6 @@
 #include <unistd.h>
 int main(){
     Controller controller;
-    sleep(1);
+    usleep(300000000);
     return 0;
 }

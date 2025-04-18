@@ -7,6 +7,7 @@
 #include "flight.h"
 #include <pthread.h>
 #include <SFML/Graphics.hpp>
+#include <unistd.h>
 using namespace std;
 using namespace sf;
 
@@ -84,17 +85,26 @@ public:
         }
         return false;
     }
+    static Aircraft* selectAvailableAircraft(vector<Aircraft*>& aircrafts) {
+        for (auto& aircraft : aircrafts) {
+            if (aircraft->getIsAvailable()) {
+                aircraft->setIsAvailable(false); // Mark as not available
+                return aircraft;
+            }
+        }
+        return nullptr; // No available aircraft
+    }
     
     static void* flightGenerator(void* arg) {
 
         cout << "Flight generator thread started..." << endl;
-        pthread_exit(nullptr);
+        // pthread_exit(nullptr);
 
         Controller* controller = (Controller*)arg;
         srand(time(NULL));
         
         //flight times 
-        const double flightTimes[] = {3.0, 2.0, 2.5, 4.0}; // in minutes
+        const double flightTimes[] = {180.0, 120.0, 150, 240.0}; // in minutes
 
 
         bool cargoHasBeenGenerated = false;
@@ -109,52 +119,69 @@ public:
         int flightId = 0;
         while (true) {
             for (int i = 0; i < 4; i++) {
-                elapsedTime[i] += 0.1; // increment elapsed time by 0.1 minutes
+                elapsedTime[i] -= 1; // increment elapsed time by 0.1 minutes
 
-                if (elapsedTime[i] == 0.0) {
+                if (elapsedTime[i] <= 0.0) {
                     elapsedTime[i] = flightTimes[i]; // reset elapsed time
                     bool isEmergency = controller->generateEmergency(emergencyProbabilities[i]);
-                    string flightType;
-                    string direction;
-                    string airlineName;
+                    string flightType = "";
+                    string direction = "";
+                    string airlineName = "";
+                    Aircraft* aircraft = nullptr;
                     int priority;
+
+                    //first selecting the airline
+                    //i am checking if the selected airline has flights left
+                    int airlineIndex = rand() % controller->airlines.size();
+                    while(controller->airlines[airlineIndex]->getFlightsLeft() == 0){
+                        airlineIndex = rand() % controller->airlines.size();
+                    }
+
+                    airlineName = controller->airlines[airlineIndex]->getName();
+                    controller->airlines[airlineIndex]->setFlightsLeft(controller->airlines[airlineIndex]->getFlightsLeft() - 1);
+                    aircraft = selectAvailableAircraft(controller->airlines[airlineIndex]->getAircrafts());
+                    flightType = controller->airlines[airlineIndex]-> getType();
+                    
+                    if(aircraft == nullptr){
+                        cout << "No available aircraft for airline: " << controller->airlines[airlineIndex]->getName() << endl;
+                        continue; // Skip to the next iteration if no available aircraft
+                    }
 
                     switch (i) {
                         case NORTH:
-                            flightType = "International Arrivals";
                             direction = "North";
                             break;
                         case SOUTH:
-                            flightType = "Domestic Arrivals";
                             direction = "South";
                             break;
                         case EAST:
-                            flightType = "International Departures";
                             direction = "East";
                             break;
                         case WEST:
-                            flightType = "Domestic Departures";
                             direction = "West";
                             break;
                     }
-
-                    Flight* newFlight = new Flight(flightId++, flightType, airlineName, direction, priority, nullptr);
+                    
+                    
+                    Flight* newFlight = new Flight(flightId, flightType, airlineName, direction, priority, nullptr);
                     if (isEmergency) {
                         newFlight->setEmergencyFlight(true);
                     }
+                    flightId++;
                     
-                    // Add the new flight to the appropriate vector
-                    if (i < 2) { // North and South are arrivals
+                    if(direction == "North" || direction == "South"){
                         controller->arrivals.push_back(newFlight);
-                    } else { // East and West are departures
+                    } else {
                         controller->departures.push_back(newFlight);
                     }
-                    
-                    cout << "Generated Flight: ID=" << newFlight->getId() << ", Type=" << flightType << ", Direction=" << direction << ", Airline=" << airlineName << ", Emergency=" << (isEmergency ? "Yes" : "No") << endl;
+                    cout << "============================" << endl;
+                    newFlight->printFlightDetails();                  
 
+
+                    //now here each flight should go on into its seperate thread
                 }
             }
-            // sleep(1); // Sleep for 0.1 seconds
+            usleep(1000000); 
             
         }  
         return  nullptr;

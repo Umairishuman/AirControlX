@@ -64,7 +64,7 @@ public:
     int getId() const {
         return id;
     }
-    vector<Aircraft*> getAircrafts() const {
+    vector<Aircraft*>& getAircrafts() {
         return aircrafts;
     }
     void addAircraft(Aircraft* aircraft) {
@@ -77,7 +77,7 @@ public:
     int getFlightsLeft() const {
         return flightsLeft;
     }
-    
+
     void displayAircrafts() const {
         for (const auto& aircraft : aircrafts) {
             cout << "Aircraft ID: " << aircraft->getId() << ", Name: " << aircraft->getName() << ", Type: " << aircraft->getType() << endl;
